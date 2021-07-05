@@ -1,6 +1,4 @@
-﻿using System;
-using System.IO;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -8,19 +6,27 @@ using SuperShop.Data;
 using SuperShop.Data.Entities;
 using SuperShop.Helpers;
 using SuperShop.Models;
-
 namespace SuperShop.Controllers
 {
     public class ProductsController : Controller
     {
         private readonly IProductRepository _productRepository;
         private readonly IUserHelper _userHelper;
+        private readonly IImageHelper _imageHelper;
+        private readonly IConverterHelper _converterHelper;
 
         public ProductsController
-            (IProductRepository productRepository, IUserHelper userHelper)
+            (
+                IProductRepository productRepository,
+                IUserHelper userHelper,
+                IImageHelper imageHelper,
+                IConverterHelper converterHelper
+            )
         {
             _productRepository = productRepository;
             _userHelper = userHelper;
+            _imageHelper = imageHelper;
+            _converterHelper = converterHelper;
         }
 
         // GET: Products
@@ -37,7 +43,7 @@ namespace SuperShop.Controllers
                 return NotFound();
             }
 
-            var product = await _productRepository.GetByIdAsync(id.Value);
+            Product product = await _productRepository.GetByIdAsync(id.Value);
 
             if (product == null)
             {
@@ -64,26 +70,11 @@ namespace SuperShop.Controllers
 
                 if (model.ImageFile != null && model.ImageFile.Length > 0)
                 {
-                    var guid = Guid.NewGuid().ToString();
-                    var file = $"{guid}.jpg";
-
-                    path = Path.Combine
-                        (
-                        Directory.GetCurrentDirectory(),
-                        "wwwroot\\images\\products",
-                        file
-                        );
-
-                    using (var stream = new FileStream(path, FileMode.Create))
-                    {
-                        await model.ImageFile.CopyToAsync(stream);
-                    }
-
-                    path = $"~/images/products/{file}";
+                    path = await _imageHelper.UploadImageAsync(model.ImageFile, "products");
                 }
 
-                var product = this.ToProduct(model, path);
-                 
+                Product product = _converterHelper.ToProduct(model, path, true);
+
                 // TODO: Change to loged user (Create)
                 product.User = await _userHelper.GetUserByEmailAsync("frnuno@protonmail.com");
 
@@ -94,22 +85,6 @@ namespace SuperShop.Controllers
             return View(model);
         }
 
-        private Product ToProduct(ProductViewModel model, string path)
-        {
-            return new Product
-            {
-                Id = model.Id,
-                Name = model.Name,
-                Price = model.Price,
-                ImageUrl = path,
-                LastPurchase = model.LastPurchase,
-                LastSale = model.LastSale,
-                IsAvailable = model.IsAvailable,
-                Stock = model.Stock,
-                User = model.User
-            };
-        }
-         
         // GET: Products/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
@@ -118,32 +93,16 @@ namespace SuperShop.Controllers
                 return NotFound();
             }
 
-            var product = await _productRepository.GetByIdAsync(id.Value);
+            Product product = await _productRepository.GetByIdAsync(id.Value);
 
             if (product == null)
             {
                 return NotFound();
             }
 
-            var model = this.ToProductViewModel(product);
+            ProductViewModel model = _converterHelper.ToProductViewModel(product);
 
             return View(model);
-        }
-
-        private ProductViewModel ToProductViewModel(Product product)
-        {
-            return new ProductViewModel
-            {
-                Id = product.Id,
-                Name = product.Name,
-                Price = product.Price,
-                ImageUrl = product.ImageUrl,
-                LastPurchase = product.LastPurchase,
-                LastSale = product.LastSale,
-                IsAvailable = product.IsAvailable,
-                Stock = product.Stock,
-                User = product.User
-            };
         }
 
         // POST: Products/Edit/5
@@ -159,25 +118,10 @@ namespace SuperShop.Controllers
 
                     if (model.ImageFile != null && model.ImageFile.Length > 0)
                     {
-                        var guid = Guid.NewGuid().ToString();
-                        var file = $"{guid}.jpg";
-
-                        path = Path.Combine
-                            (
-                            Directory.GetCurrentDirectory(),
-                            "wwwroot\\images\\products",
-                            file
-                            );
-
-                        using (var stream = new FileStream(path, FileMode.Create))
-                        {
-                            await model.ImageFile.CopyToAsync(stream);
-                        }
-
-                        path = $"~/images/products/{file}";
+                        path = await _imageHelper.UploadImageAsync(model.ImageFile, "products");
                     }
 
-                    var product = this.ToProduct(model, path);
+                    Product product = _converterHelper.ToProduct(model, path, false);
 
                     // TODO: Change to loged user (Edit)
                     product.User = await _userHelper.GetUserByEmailAsync("frnuno@protonmail.com");
@@ -186,7 +130,7 @@ namespace SuperShop.Controllers
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (! await _productRepository.ExistAsync(model.Id))
+                    if (!await _productRepository.ExistAsync(model.Id))
                     {
                         return NotFound();
                     }
@@ -208,7 +152,7 @@ namespace SuperShop.Controllers
                 return NotFound();
             }
 
-            var product = await _productRepository.GetByIdAsync(id.Value);
+            Product product = await _productRepository.GetByIdAsync(id.Value);
 
             if (product == null)
             {
@@ -223,7 +167,7 @@ namespace SuperShop.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var product = await _productRepository.GetByIdAsync(id);
+            Product product = await _productRepository.GetByIdAsync(id);
 
             await _productRepository.DeleteAsync(product);
 
