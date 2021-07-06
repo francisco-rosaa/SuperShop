@@ -1,0 +1,4 @@
+frnuno
+_Abc1234
+
+Data Source=tcp:supershop9dbserver.database.windows.net,1433;Initial Catalog=SuperShop_db;User Id=frnuno@supershop9dbserver;Password=_Abc1234

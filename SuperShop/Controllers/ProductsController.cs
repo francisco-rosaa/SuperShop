@@ -1,31 +1,32 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SuperShop.Data;
-using SuperShop.Data.Entities;
 using SuperShop.Helpers;
 using SuperShop.Models;
+
 namespace SuperShop.Controllers
 {
     public class ProductsController : Controller
     {
         private readonly IProductRepository _productRepository;
         private readonly IUserHelper _userHelper;
-        private readonly IImageHelper _imageHelper;
+        private readonly IBlobHelper _blobHelper;
         private readonly IConverterHelper _converterHelper;
 
         public ProductsController
             (
                 IProductRepository productRepository,
                 IUserHelper userHelper,
-                IImageHelper imageHelper,
+                IBlobHelper blobHelper,
                 IConverterHelper converterHelper
             )
         {
             _productRepository = productRepository;
             _userHelper = userHelper;
-            _imageHelper = imageHelper;
+            _blobHelper = blobHelper;
             _converterHelper = converterHelper;
         }
 
@@ -43,7 +44,7 @@ namespace SuperShop.Controllers
                 return NotFound();
             }
 
-            Product product = await _productRepository.GetByIdAsync(id.Value);
+            var product = await _productRepository.GetByIdAsync(id.Value);
 
             if (product == null)
             {
@@ -66,14 +67,14 @@ namespace SuperShop.Controllers
         {
             if (ModelState.IsValid)
             {
-                var path = string.Empty;
+                Guid imageId = Guid.Empty;
 
                 if (model.ImageFile != null && model.ImageFile.Length > 0)
                 {
-                    path = await _imageHelper.UploadImageAsync(model.ImageFile, "products");
+                    imageId = await _blobHelper.UploadBlobAsync(model.ImageFile, "products");
                 }
 
-                Product product = _converterHelper.ToProduct(model, path, true);
+                var product = _converterHelper.ToProduct(model, imageId, true);
 
                 // TODO: Change to loged user (Create)
                 product.User = await _userHelper.GetUserByEmailAsync("frnuno@protonmail.com");
@@ -93,14 +94,14 @@ namespace SuperShop.Controllers
                 return NotFound();
             }
 
-            Product product = await _productRepository.GetByIdAsync(id.Value);
+            var product = await _productRepository.GetByIdAsync(id.Value);
 
             if (product == null)
             {
                 return NotFound();
             }
 
-            ProductViewModel model = _converterHelper.ToProductViewModel(product);
+            var model = _converterHelper.ToProductViewModel(product);
 
             return View(model);
         }
@@ -114,14 +115,14 @@ namespace SuperShop.Controllers
             {
                 try
                 {
-                    var path = model.ImageUrl;
+                    Guid imageId = model.ImageId;
 
                     if (model.ImageFile != null && model.ImageFile.Length > 0)
                     {
-                        path = await _imageHelper.UploadImageAsync(model.ImageFile, "products");
+                        imageId = await _blobHelper.UploadBlobAsync(model.ImageFile, "products");
                     }
 
-                    Product product = _converterHelper.ToProduct(model, path, false);
+                    var product = _converterHelper.ToProduct(model, imageId, false);
 
                     // TODO: Change to loged user (Edit)
                     product.User = await _userHelper.GetUserByEmailAsync("frnuno@protonmail.com");
@@ -152,7 +153,7 @@ namespace SuperShop.Controllers
                 return NotFound();
             }
 
-            Product product = await _productRepository.GetByIdAsync(id.Value);
+            var product = await _productRepository.GetByIdAsync(id.Value);
 
             if (product == null)
             {
@@ -167,7 +168,7 @@ namespace SuperShop.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            Product product = await _productRepository.GetByIdAsync(id);
+            var product = await _productRepository.GetByIdAsync(id);
 
             await _productRepository.DeleteAsync(product);
 
