@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using SuperShop.Data.Entities;
 using SuperShop.Helpers;
 using SuperShop.Models;
 using System.Linq;
@@ -44,10 +46,8 @@ namespace SuperShop.Controllers
             }
 
             this.ModelState.AddModelError(string.Empty, "Failed to login");
-
             return View(model);
         }
-
 
         public async Task<ActionResult> Logout()
         {
@@ -55,6 +55,59 @@ namespace SuperShop.Controllers
 
             return RedirectToAction("Index", "Home");
         }
+
+        public IActionResult Register()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Register(RegisterNewUserViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                var user = await _userHelper.GetUserByEmailAsync(model.Username);
+
+                if (user == null)
+                {
+                    user = new User
+                    {
+                        FirstName = model.FirstName,
+                        LastName = model.LastName,
+                        Email = model.Username,
+                        UserName = model.Username
+                    };
+
+                    var resultAdd = await _userHelper.AddUserAsync(user, model.Password);
+
+                    if (resultAdd != IdentityResult.Success)
+                    {
+                        ModelState.AddModelError(string.Empty, "Failed to register");
+                        return View(model);
+                    }
+
+                    var loginViewModel = new LoginViewModel
+                    {
+                        Password = model.Password,
+                        RememberMe = false,
+                        Username = model.Username
+                    };
+
+                    var resultLogin = await _userHelper.LoginAsync(loginViewModel);
+
+                    if (resultLogin.Succeeded)
+                    {
+                        return RedirectToAction("Index", "Home");
+                    }
+
+                    ModelState.AddModelError(string.Empty, "Failed to login");
+                }
+            }
+
+            return View(model);
+        }
+
+
 
 
 

@@ -78,8 +78,7 @@ namespace SuperShop.Controllers
 
                 var product = _converterHelper.ToProduct(model, imageId, true);
 
-                // TODO: Change to loged user (Create)
-                product.User = await _userHelper.GetUserByEmailAsync("frnuno@protonmail.com");
+                product.User = await _userHelper.GetUserByEmailAsync(this.User.Identity.Name);
 
                 await _productRepository.CreateAsync(product);
 
@@ -127,8 +126,7 @@ namespace SuperShop.Controllers
 
                     var product = _converterHelper.ToProduct(model, imageId, false);
 
-                    // TODO: Change to loged user (Edit)
-                    product.User = await _userHelper.GetUserByEmailAsync("frnuno@protonmail.com");
+                    product.User = await _userHelper.GetUserByEmailAsync(this.User.Identity.Name);
 
                     await _productRepository.UpdateAsync(product);
                 }
@@ -149,6 +147,7 @@ namespace SuperShop.Controllers
         }
 
         // GET: Products/Delete/5
+        [Authorize]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
