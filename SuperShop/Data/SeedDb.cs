@@ -33,11 +33,11 @@ namespace SuperShop.Data
                     FirstName = "Francisco",
                     LastName = "Rosa",
                     Email = "frnuno@protonmail.com",
-                    UserName = "frnuno",
+                    UserName = "frnuno@protonmail.com",
                     PhoneNumber = "123456789"
                 };
 
-                var result = await _userHelper.AddUserAsync(user, "123");
+                var result = await _userHelper.AddUserAsync(user, "123456");
 
                 if (result != IdentityResult.Success)
                 {
@@ -49,7 +49,7 @@ namespace SuperShop.Data
             {
                 await Task.Run(() => 
                 {
-                    for (int i = 1; i <= 20; i++)
+                    for (int i = 1; i <= 10; i++)
                     {
                         AddProduct($"Product {i}", user);
                     }
