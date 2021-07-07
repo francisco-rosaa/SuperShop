@@ -45,7 +45,7 @@ namespace SuperShop.Controllers
                 }
             }
 
-            this.ModelState.AddModelError(string.Empty, "Failed to login");
+            this.ModelState.AddModelError(string.Empty, "Failed to login.");
             return View(model);
         }
 
@@ -82,7 +82,7 @@ namespace SuperShop.Controllers
 
                     if (resultAdd != IdentityResult.Success)
                     {
-                        ModelState.AddModelError(string.Empty, "Failed to register");
+                        ModelState.AddModelError(string.Empty, "Failed to register.");
                         return View(model);
                     }
 
@@ -100,17 +100,88 @@ namespace SuperShop.Controllers
                         return RedirectToAction("Index", "Home");
                     }
 
-                    ModelState.AddModelError(string.Empty, "Failed to login");
+                    ModelState.AddModelError(string.Empty, "Failed to login.");
                 }
             }
 
             return View(model);
         }
 
+        public async Task<IActionResult> ChangeUser()
+        {
+            var user = await _userHelper.GetUserByEmailAsync(this.User.Identity.Name);
 
+            var model = new ChangeUserViewModel();
 
+            if (user != null)
+            {
+                model.FirstName = user.FirstName;
+                model.LastName = user.LastName;
+            }
 
+            return View(model);
+        }
 
+        [HttpPost]
+        public async Task<IActionResult> ChangeUser(ChangeUserViewModel model)
+        { 
+            if (ModelState.IsValid)
+            {
+                var user = await _userHelper.GetUserByEmailAsync(this.User.Identity.Name);
 
+                if (user != null)
+                {
+                    user.FirstName = model.FirstName;
+                    user.LastName = model.LastName;
+
+                    var response = await _userHelper.UpdateUserAsync(user);
+
+                    if (response.Succeeded)
+                    {
+                        ViewBag.UserMessage = "User updated.";
+                    }
+                    else
+                    {
+                        ModelState.AddModelError(string.Empty, response.Errors.FirstOrDefault().Description);
+                    }
+                }
+            }
+
+            return View(model);
+        }
+
+        public IActionResult ChangePassword()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ChangePassword(ChangePasswordViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                var user = await _userHelper.GetUserByEmailAsync(this.User.Identity.Name);
+
+                if (user != null)
+                {
+                    var result = await _userHelper.ChangePasswordAsync(user, model.OldPassword, model.NewPassword);
+                    
+                    if (result.Succeeded)
+                    {
+                        return this.RedirectToAction("ChangeUser");
+                    }
+                    else
+                    {
+                        this.ModelState.AddModelError(string.Empty, result.Errors.FirstOrDefault().Description);
+                    }
+                }
+                else
+                {
+                    this.ModelState.AddModelError(string.Empty, "User not found.");
+                }
+            }
+
+            return this.View(model);
+        }
     }
 }
