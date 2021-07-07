@@ -77,12 +77,12 @@ namespace SuperShop.Helpers
 
         public async Task AddUserToRoleAsync(User user, string roleName)
         {
-            await _userManager.AddToRoleAsync(user, "Admin");
+            await _userManager.AddToRoleAsync(user, roleName);
         }
 
         public async Task<bool> IsUserInRoleAsync(User user, string roleName)
         {
-            return await _userManager.IsInRoleAsync(user, "Admin");
+            return await _userManager.IsInRoleAsync(user, roleName);
         }
     }
 }
