@@ -42,14 +42,14 @@ namespace SuperShop.Controllers
         {
             if (id == null)
             {
-                return NotFound();
+                return new NotFoundViewResul("ProductNotFound");
             }
 
             var product = await _productRepository.GetByIdAsync(id.Value);
 
             if (product == null)
             {
-                return NotFound();
+                return new NotFoundViewResul("ProductNotFound");
             }
 
             return View(product);
@@ -93,14 +93,14 @@ namespace SuperShop.Controllers
         {
             if (id == null)
             {
-                return NotFound();
+                return new NotFoundViewResul("ProductNotFound");
             }
 
             var product = await _productRepository.GetByIdAsync(id.Value);
 
             if (product == null)
             {
-                return NotFound();
+                return new NotFoundViewResul("ProductNotFound");
             }
 
             var model = _converterHelper.ToProductViewModel(product);
@@ -134,7 +134,7 @@ namespace SuperShop.Controllers
                 {
                     if (!await _productRepository.ExistAsync(model.Id))
                     {
-                        return NotFound();
+                        return new NotFoundViewResul("ProductNotFound");
                     }
                     else
                     {
@@ -152,14 +152,14 @@ namespace SuperShop.Controllers
         {
             if (id == null)
             {
-                return NotFound();
+                return new NotFoundViewResul("ProductNotFound");
             }
 
             var product = await _productRepository.GetByIdAsync(id.Value);
 
             if (product == null)
             {
-                return NotFound();
+                return new NotFoundViewResul("ProductNotFound");
             }
 
             return View(product);
@@ -175,6 +175,11 @@ namespace SuperShop.Controllers
             await _productRepository.DeleteAsync(product);
 
             return RedirectToAction(nameof(Index));
+        }
+
+        public IActionResult ProductNotFound()
+        {
+            return View();
         }
     }
 }
