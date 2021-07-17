@@ -21,14 +21,12 @@ namespace SuperShop.Controllers
         public async Task<IActionResult> Index()
         {
             var model = await _orderRepository.GetOrderAsync(this.User.Identity.Name);
-
             return View(model);
         }
 
         public async Task<IActionResult> Create()
         {
             var model = await _orderRepository.GetDetailsTempAsync(this.User.Identity.Name);
-
             return View(model);
         }
 
@@ -54,6 +52,39 @@ namespace SuperShop.Controllers
             }
 
             return View(model);
+        }
+
+        public async Task<IActionResult> DeleteItem(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            await _orderRepository.DeleteDetailTempAsync(id.Value);
+            return RedirectToAction("Create");
+        }
+
+        public async Task<IActionResult> Increase(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            await _orderRepository.ModifyOrderDetailTempQuantityAsync(id.Value, 1);
+            return RedirectToAction("Create");
+        }
+
+        public async Task<IActionResult> Decrease(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            await _orderRepository.ModifyOrderDetailTempQuantityAsync(id.Value, -1);
+            return RedirectToAction("Create");
         }
     }
 }
