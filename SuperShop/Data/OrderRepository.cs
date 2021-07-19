@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using SuperShop.Data.Entities;
@@ -31,6 +32,7 @@ namespace SuperShop.Data
             if (await _userHelper.IsUserInRoleAsync(user, "Admin"))
             {
                 return _context.Orders
+                    .Include(x => x.User)
                     .Include(x => x.Items)
                     .ThenInclude(x => x.Product)
                     .OrderByDescending(x => x.OrderDate);
@@ -131,6 +133,48 @@ namespace SuperShop.Data
             _context.OrderDetailsTemp.Remove(orderDetailTemp);
 
             await _context.SaveChangesAsync();
+        }
+
+        public async Task<bool> ConfirmOrderAsync(string userName)
+        {
+            var user = await _userHelper.GetUserByEmailAsync(userName);
+
+            if (user == null)
+            {
+                return false;
+            }
+
+            var orderTemps = await _context.OrderDetailsTemp
+                .Include(x => x.Product)
+                .Where(x => x.User == user)
+                .ToListAsync();
+
+            if (orderTemps == null || orderTemps.Count == 0)
+            {
+                return false;
+            }
+
+            var details = orderTemps.Select(x => new OrderDetail
+            {
+                Product = x.Product,
+                Price = x.Price,
+                Quantity = x.Quantity
+            }).ToList();
+
+            var order = new Order
+            {
+                OrderDate = DateTime.UtcNow,
+                User = user,
+                Items = details
+            };
+
+            await CreateAsync(order);
+
+            _context.OrderDetailsTemp.RemoveRange(orderTemps);
+
+            await _context.SaveChangesAsync();
+
+            return true;
         }
     }
 }

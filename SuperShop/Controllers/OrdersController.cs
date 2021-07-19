@@ -29,7 +29,7 @@ namespace SuperShop.Controllers
             var model = await _orderRepository.GetDetailsTempAsync(this.User.Identity.Name);
             return View(model);
         }
-
+        
         public IActionResult AddProduct()
         {
             var model = new AddItemViewModel
@@ -84,6 +84,19 @@ namespace SuperShop.Controllers
             }
 
             await _orderRepository.ModifyOrderDetailTempQuantityAsync(id.Value, -1);
+            return RedirectToAction("Create");
+        }
+
+
+        public async Task<IActionResult> ConfirmOrder()
+        {
+            var response = await _orderRepository.ConfirmOrderAsync(this.User.Identity.Name);
+
+            if (response)
+            {
+                return RedirectToAction("Index");
+            }
+
             return RedirectToAction("Create");
         }
     }
