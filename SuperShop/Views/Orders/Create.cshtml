@@ -53,15 +53,16 @@
         }
     </tbody>
 </table>
+
 <div id="confirmDialog" class="modal fade">
     <div class="modal-dialog modal-sm">
         <div class="modal-content">
             <div class="modal-header">
-                <h4 class="modal-title">Confirm Order</h4>
+                <h4 class="modal-title">Confirm</h4>
                 <button type="button" class="close" data-dismiss="modal"><i class="fa fa-window-close"></i></button>
             </div>
             <div class="modal-body">
-                <p>Do you want to confirm the order ?</p>
+                <p>Confirm order?</p>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-danger" id="btnYesConfirm">Yes</button>
@@ -70,6 +71,7 @@
         </div>
     </div>
 </div>
+
 <div id="deleteDialog" class="modal fade">
     <div class="modal-dialog modal-sm">
         <div class="modal-content">
@@ -78,7 +80,7 @@
                 <button type="button" class="close" data-dismiss="modal"><i class="fa fa-window-close"></i></button>
             </div>
             <div class="modal-body">
-                <p>Do you want to delete product from order ?</p>
+                <p>Delete product from order?</p>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-danger" id="btnYesDelete">Yes</button>
@@ -90,8 +92,10 @@
 
 @section Scripts{
     <script type="text/javascript">
-        $(document).ready(function(){
+        $(document).ready(function () {
+
             var id = 0;
+
             $("#btnConfirm").click(function() {
                 $("#confirmDialog").modal("show");
                 return false;
@@ -103,6 +107,7 @@
             $("#btnYesConfirm").click(function() {
                 window.location.href = "/Orders/ConfirmOrder";
             });
+
             $("a[id*=btnDeleteItem]").click(function() {
                 debugger;
                 id=$(this).parent()[0].id;
@@ -116,6 +121,7 @@
             $("#btnYesDelete").click(function() {
                 window.location.href = "/Orders/DeleteItem/" + id;
             });
+
         });
     </script>
 }
