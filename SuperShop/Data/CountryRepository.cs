@@ -1,5 +1,7 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using SuperShop.Data.Entities;
 using SuperShop.Models;
@@ -80,6 +82,47 @@ namespace SuperShop.Data
             _context.Cities.Remove(city);
             await _context.SaveChangesAsync();
             return country.Id;
+        }
+
+        public IEnumerable<SelectListItem> GetComboCountries()
+        {
+            var list = _context.Countries.Select(x => new SelectListItem
+            {
+                Text = x.Name,
+                Value = x.Id.ToString()
+            }).OrderBy(x => x.Text).ToList();
+
+            list.Insert(0, new SelectListItem
+            {
+                Text = "(Select country...)",
+                Value = "0"
+            });
+
+            return list;
+        }
+
+        public IEnumerable<SelectListItem> GetComboCities(int countryId)
+        {
+            var country = _context.Countries.Find(countryId);
+
+            var list = new List<SelectListItem>();
+
+            if (country != null)
+            {
+                list = _context.Cities.Select(x => new SelectListItem
+                {
+                    Text = x.Name,
+                    Value = x.Id.ToString()
+                }).OrderBy(x => x.Text).ToList();
+
+                list.Insert(0, new SelectListItem
+                {
+                    Text = "(Select city...)",
+                    Value = "0"
+                });
+            }
+
+            return list;
         }
 
         public async Task<Country> GetCountryAsync(City city)

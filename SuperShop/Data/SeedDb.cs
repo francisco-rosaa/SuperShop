@@ -53,7 +53,7 @@ namespace SuperShop.Data
                     Email = "frnuno@protonmail.com",
                     UserName = "frnuno@protonmail.com",
                     PhoneNumber = "123456789",
-                    Adress = "Rua Jau 33",
+                    Address = "Rua Jau 33",
                     CityId = _context.Countries.FirstOrDefault().Cities.FirstOrDefault().Id,
                     City = _context.Countries.FirstOrDefault().Cities.FirstOrDefault()
                 };

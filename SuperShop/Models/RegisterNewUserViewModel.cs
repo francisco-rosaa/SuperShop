@@ -1,4 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace SuperShop.Models
 {
@@ -17,6 +19,30 @@ namespace SuperShop.Models
         [Required]
         [DataType(DataType.EmailAddress)]
         public string Username { get; set; }
+
+
+        [MaxLength(100, ErrorMessage = "The field {0} can contain {1} characters.")]
+        public string Address { get; set; }
+
+
+        [MaxLength(20, ErrorMessage = "The field {0} can contain {1} characters.")]
+        public string PhoneNumber { get; set; }
+
+
+        [Display(Name = "City")]
+        [Range(1, int.MaxValue, ErrorMessage = "Select a city.")]
+        public int CityId { get; set; }
+
+
+        public IEnumerable<SelectListItem> Cities { get; set; }
+
+
+        [Display(Name = "Country")]
+        [Range(1, int.MaxValue, ErrorMessage = "Select a country.")]
+        public int CountryId { get; set; }
+
+
+        public IEnumerable<SelectListItem> Countries { get; set; }
 
 
         [Required]
