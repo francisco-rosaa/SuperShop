@@ -18,17 +18,20 @@ namespace SuperShop.Controllers
     public class AccountController : Controller
     {
         private readonly IUserHelper _userHelper;
+        private readonly IMailHelper _mailHelper;
         private readonly IConfiguration _configuration;
         private readonly ICountryRepository _countryRepository;
 
         public AccountController
             (
                 IUserHelper userHelper,
+                IMailHelper mailHelper,
                 IConfiguration configuration,
                 ICountryRepository countryRepository
             )
         {
             _userHelper = userHelper;
+            _mailHelper = mailHelper;
             _configuration = configuration;
             _countryRepository = countryRepository;
         }
@@ -114,20 +117,28 @@ namespace SuperShop.Controllers
                         return View(model);
                     }
 
-                    //await _userHelper.AddUserToRoleAsync(user, "Customer");
+                    string myToken = await _userHelper.GenerateEmailConfirmationTokenAsync(user);
 
-                    var loginViewModel = new LoginViewModel
+                    string tokenLink = Url.Action
+                        (
+                            "ConfirmEmail",
+                            "Account",
+                            new { userid = user.Id, token = myToken },
+                            protocol: HttpContext.Request.Scheme
+                        );
+
+                    Response response = _mailHelper.SendEmail
+                        (
+                            model.Username,
+                            "Email confirmation",
+                            "<h1>Email confirmation</h1>" +
+                            $"Click to <a href = \"{tokenLink}\">confirm email</a>."
+                        );
+
+                    if (response.IsSuccess)
                     {
-                        Password = model.Password,
-                        RememberMe = false,
-                        Username = model.Username
-                    };
-
-                    var resultLogin = await _userHelper.LoginAsync(loginViewModel);
-
-                    if (resultLogin.Succeeded)
-                    {
-                        return RedirectToAction("Index", "Home");
+                        ViewBag.Message = "Check your email.";
+                        return View(model);
                     }
 
                     ModelState.AddModelError(string.Empty, "Failed to login.");
@@ -301,6 +312,30 @@ namespace SuperShop.Controllers
             }
 
             return BadRequest();
+        }
+
+        public async Task<IActionResult> ConfirmEmail(string userId, string token)
+        {
+            if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(token))
+            {
+                return NotFound();
+            }
+
+            var user = await _userHelper.GetUserByIdAsync(userId);
+
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            var result = await _userHelper.ConfirmEmailAsync(user, token);
+
+            if (!result.Succeeded)
+            {
+                return NotFound();
+            }
+
+            return View();
         }
     }
 }
