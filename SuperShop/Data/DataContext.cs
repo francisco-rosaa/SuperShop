@@ -23,6 +23,27 @@ namespace SuperShop.Data
         {
         }
 
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Country>()
+                .HasIndex(x => x.Name)
+                .IsUnique();
+
+            modelBuilder.Entity<Product>()
+                .Property(x => x.Price)
+                .HasColumnType("decimal(18,2)");
+
+            modelBuilder.Entity<OrderDetailTemp>()
+               .Property(x => x.Price)
+               .HasColumnType("decimal(18,2)");
+
+            modelBuilder.Entity<OrderDetail>()
+              .Property(x => x.Price)
+              .HasColumnType("decimal(18,2)");
+
+            base.OnModelCreating(modelBuilder);
+        }
+
         // Cascade Delete Rule
         //protected override void OnModelCreating(ModelBuilder modelBuilder)
         //{
